@@ -13,7 +13,14 @@
   "dependencies": {
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-simple-wysiwyg": "^3.4.1"
+    "react-simple-wysiwyg": "^3.4.1",
+    "unified": "^11.0.5",
+    "remark-parse": "^11.0.0",
+    "remark-html": "^16.0.1",
+    "rehype-parse": "^9.0.1",
+    "rehype-remark": "^10.0.1",
+    "remark-stringify": "^11.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

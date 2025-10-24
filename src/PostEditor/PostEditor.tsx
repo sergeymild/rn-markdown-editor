@@ -8,6 +8,7 @@ import Editor, {
   Toolbar
 } from 'react-simple-wysiwyg'
 import {memo, useCallback, useEffect, useState} from "react";
+import {markdownToHtml} from "./markdown.tsx";
 
 // Объявление типа для React Native WebView
 declare global {
@@ -21,6 +22,15 @@ declare global {
 
 export const PostEditor = memo(() => {
     const [value, setValue] = useState('')
+
+    // Отправляем сообщение о готовности при монтировании компонента
+    useEffect(() => {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'READY'
+        }))
+      }
+    }, [])
 
     useEffect(() => {
       // Функция для конвертации plain text в HTML
@@ -56,7 +66,7 @@ export const PostEditor = memo(() => {
           const data = JSON.parse(event.data)
           if (data.type === 'SET_VALUE' && data.value !== undefined) {
             // Конвертируем text в HTML если нужно
-            const htmlValue = textToHtml(data.value)
+            const htmlValue = textToHtml(markdownToHtml(data.value))
             setValue(htmlValue)
           }
         } catch (error) {
