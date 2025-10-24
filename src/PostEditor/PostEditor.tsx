@@ -7,7 +7,7 @@ import Editor, {
   BtnStrikeThrough,
   Toolbar
 } from 'react-simple-wysiwyg'
-import {memo, useEffect, useState} from "react";
+import {memo, useCallback, useEffect, useState} from "react";
 
 // Объявление типа для React Native WebView
 declare global {
@@ -73,6 +73,36 @@ export const PostEditor = memo(() => {
       }
     }, [])
 
+    const sendHeight = useCallback(() => {
+      // Отправляем высоту контента в React Native
+      if (window.ReactNativeWebView) {
+        // Используем offsetHeight вместо scrollHeight для точного измерения
+        const rootElement = document.getElementById('root')
+        const height = rootElement ? rootElement.scrollHeight : document.documentElement.scrollHeight
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'HEIGHT_CHANGED',
+          height: height
+        }))
+      }
+    }, [])
+
+    // Отслеживаем изменения размера контента
+    useEffect(() => {
+      setTimeout(sendHeight, 100)
+      const rootElement = document.getElementById('root')
+      if (!rootElement) return
+
+      const observer = new ResizeObserver(() => {
+        sendHeight()
+      })
+
+      observer.observe(rootElement)
+
+      return () => {
+        observer.disconnect()
+      }
+    }, [sendHeight])
+
     const handleChange = (e: { target: { value: string } }) => {
       const newValue = e.target.value
       setValue(newValue)
@@ -84,6 +114,10 @@ export const PostEditor = memo(() => {
           value: newValue
         }))
       }
+
+      // Отправляем новую высоту сразу и через небольшую задержку
+      sendHeight()
+      setTimeout(sendHeight, 50)
     }
 
     return (

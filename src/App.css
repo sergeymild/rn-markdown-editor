@@ -9,15 +9,16 @@ p {
 }
 
 html, body, #root, .rsw-editor {
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: auto;
     font-family: Montserrat, sans-serif;
 }
 
 #root .rsw-editor {
     border-radius: 0;
     border: none;
-    overflow: auto;
+    overflow: visible;
+    height: auto;
 }
 
 ol, ul {
@@ -32,7 +33,8 @@ dl, ol, ul {
 .rsw-ce {
     outline: none !important;
     background-color: #f8f9f9;
-    overflow: auto;
+    overflow: visible;
     font-size: 13px !important;
-    scrollbar-width: none;
+    height: auto !important;
+    min-height: 200px;
 }
