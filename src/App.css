@@ -1,0 +1,38 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+html, body, #root, .rsw-editor {
+    width: 100vw;
+    height: 100vh;
+    font-family: Montserrat, sans-serif;
+}
+
+#root .rsw-editor {
+    border-radius: 0;
+    border: none;
+    overflow: auto;
+}
+
+ol, ul {
+    padding-left: 1rem;
+}
+
+dl, ol, ul {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.rsw-ce {
+    outline: none !important;
+    background-color: #f8f9f9;
+    overflow: auto;
+    font-size: 13px !important;
+    scrollbar-width: none;
+}
