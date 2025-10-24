@@ -20,7 +20,7 @@ declare global {
 
 
 export const PostEditor = memo(() => {
-    const [value, setValue] = useState("Hello, I’m Sergey Gol. I work as a Developer @Surn and have built my career navigating diverse environments, from Russia to Cyprus (Paphos and Limassol). I focus on practical, service-centered solutions and believe in thoughtful, respectful collaboration. Over the years I have:\n\n• Developed efficient code solutions in a dynamic industry\n• Adapted to multicultural settings to enhance team effectiveness\n• Refined my approach to problem-solving through real-world challenges\n\nI have accumulated substantial experience and am always ready to share insights from my journey. Your feedback is valuable to me as I continue growing and refining my craft.")
+    const [value, setValue] = useState('')
 
     useEffect(() => {
       // Функция для конвертации plain text в HTML
