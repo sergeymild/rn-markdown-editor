@@ -8,7 +8,7 @@ import Editor, {
   Toolbar
 } from 'react-simple-wysiwyg'
 import {memo, useCallback, useEffect, useState} from "react";
-import {markdownToHtml} from "./markdown.tsx";
+import {markdownToHtml, htmlToMarkdown} from "./markdown.tsx";
 
 // Объявление типа для React Native WebView
 declare global {
@@ -61,27 +61,37 @@ export const PostEditor = memo(() => {
       }
 
       // Слушатель для получения значений из React Native
-      const handleMessage = (event: MessageEvent) => {
+      const handleMessage = async (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data)
           if (data.type === 'SET_VALUE' && data.value !== undefined) {
             // Конвертируем text в HTML если нужно
-            const htmlValue = textToHtml(markdownToHtml(data.value))
+            const htmlValue = textToHtml(await markdownToHtml(data.value))
             setValue(htmlValue)
+          } else if (data.type === 'GET_VALUE') {
+            // Получаем текущее значение, конвертируем в markdown и отправляем обратно
+            const markdown = await htmlToMarkdown(value)
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'VALUE_RESPONSE',
+                requestId: data.requestId,
+                value: markdown
+              }))
+            }
           }
         } catch (error) {
           console.error('Error parsing message:', error)
         }
       }
 
-      window.addEventListener('message', handleMessage)
-      document.addEventListener('message', handleMessage as EventListener)
+      window.addEventListener('message', handleMessage as unknown as EventListener)
+      document.addEventListener('message', handleMessage as unknown as EventListener)
 
       return () => {
-        window.removeEventListener('message', handleMessage)
-        document.removeEventListener('message', handleMessage as EventListener)
+        window.removeEventListener('message', handleMessage as unknown as EventListener)
+        document.removeEventListener('message', handleMessage as unknown as EventListener)
       }
-    }, [])
+    }, [value])
 
     const sendHeight = useCallback(() => {
       // Отправляем высоту контента в React Native
