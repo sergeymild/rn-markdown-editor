@@ -1,10 +1,4 @@
 import Editor, {
-  BtnBold,
-  BtnBulletList,
-  BtnItalic,
-  BtnLink,
-  BtnNumberedList,
-  BtnStrikeThrough,
   Toolbar
 } from 'react-simple-wysiwyg'
 import {memo, useCallback, useEffect, useState} from "react";
@@ -60,6 +54,34 @@ export const PostEditor = memo(() => {
           .join('')
       }
 
+      const handleCommand = (command: string) => {
+        if (command === 'link') {
+          // Special handling for link command
+          const selection = window.getSelection()
+          const selectedText = selection?.toString()
+
+          // Prompt for URL
+          const url = window.prompt('Enter URL:', 'https://')
+
+          if (url) {
+            if (selectedText) {
+              // If text is selected, create a link with that text
+              document.execCommand('createLink', false, url)
+            } else {
+              // If no text is selected, insert the URL as both text and link
+              document.execCommand(
+                'insertHTML',
+                false,
+                `<a href="${url}">${url}</a>`,
+              )
+            }
+          }
+        } else {
+          // For all other commands, execute normally
+          document.execCommand(command, false)
+        }
+      }
+
       // Слушатель для получения значений из React Native
       const handleMessage = async (event: MessageEvent) => {
         try {
@@ -78,6 +100,8 @@ export const PostEditor = memo(() => {
                 value: markdown
               }))
             }
+          } else if (data.type === 'EXECUTE_COMMAND' && data.command) {
+              handleCommand(data.command)
           }
         } catch (error) {
           console.error('Error parsing message:', error)
@@ -143,12 +167,7 @@ export const PostEditor = memo(() => {
     return (
       <Editor value={value} onChange={handleChange}>
         <Toolbar>
-          <BtnBold  />
-          <BtnItalic />
-          <BtnStrikeThrough/>
-          <BtnBulletList/>
-          <BtnNumberedList/>
-          <BtnLink/>
+
         </Toolbar>
       </Editor>
     )
