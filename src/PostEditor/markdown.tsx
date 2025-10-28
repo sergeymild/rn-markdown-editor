@@ -18,13 +18,14 @@ export const markdownToHtml = async (markdown: string) => {
 
 export const htmlToMarkdown = async (html: string) => {
   try {
+    console.log('[Markdown.htmlToMarkdown]', html)
     const result = await unified()
       .use(rehypeParse, { fragment: true })
       .use(rehypeRemark)
       .use(remarkGfm)
       .use(remarkStringify)
       .process(html);
-
+    console.log('[Markdown.htmlToMarkdown]', String(result))
     return String(result);
   } catch (error) {
     console.error('Error converting HTML to Markdown:', error);

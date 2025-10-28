@@ -56,7 +56,7 @@ export const PostEditor = memo(() => {
         })
 
         // Удаляем ненужные теги, оставляя только их содержимое
-        const tagsToRemove = ['span', 'div', 'section', 'article']
+        const tagsToRemove = ['span', 'div', 'section', 'article', 'u']
         tagsToRemove.forEach(tagName => {
           const tags = temp.querySelectorAll(tagName)
           tags.forEach(tag => {
@@ -218,7 +218,23 @@ export const PostEditor = memo(() => {
     }, [sendHeight])
 
     const handleChange = (e: { target: { value: string } }) => {
-      const newValue = e.target.value
+      let newValue = e.target.value
+
+      // Удаляем теги <u> во время редактирования
+      if (newValue.includes('<u>')) {
+        const temp = document.createElement('div')
+        temp.innerHTML = newValue
+        const uTags = temp.querySelectorAll('u')
+        uTags.forEach(tag => {
+          const parent = tag.parentNode
+          while (tag.firstChild) {
+            parent?.insertBefore(tag.firstChild, tag)
+          }
+          tag.remove()
+        })
+        newValue = temp.innerHTML
+      }
+
       setValue(newValue)
 
       // Отправитель для отправки значений в React Native
