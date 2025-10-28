@@ -27,6 +27,74 @@ export const PostEditor = memo(() => {
     }, [])
 
     useEffect(() => {
+      // Функция для очистки HTML от ненужных стилей и тегов
+      const cleanHtml = (html: string): string => {
+        const temp = document.createElement('div')
+        temp.innerHTML = html
+
+        // Удаляем все style атрибуты
+        const elementsWithStyle = temp.querySelectorAll('[style]')
+        elementsWithStyle.forEach(el => el.removeAttribute('style'))
+
+        // Удаляем ненужные атрибуты (class, id, color, face и т.д.)
+        const allElements = temp.querySelectorAll('*')
+        allElements.forEach(el => {
+          const attrs = Array.from(el.attributes)
+          attrs.forEach(attr => {
+            if (!['href', 'target'].includes(attr.name)) {
+              el.removeAttribute(attr.name)
+            }
+          })
+        })
+
+        // Заменяем font теги на span без стилей
+        const fontTags = temp.querySelectorAll('font')
+        fontTags.forEach(font => {
+          const span = document.createElement('span')
+          span.innerHTML = font.innerHTML
+          font.replaceWith(span)
+        })
+
+        // Удаляем ненужные теги, оставляя только их содержимое
+        const tagsToRemove = ['span', 'div', 'section', 'article']
+        tagsToRemove.forEach(tagName => {
+          const tags = temp.querySelectorAll(tagName)
+          tags.forEach(tag => {
+            const parent = tag.parentNode
+            while (tag.firstChild) {
+              parent?.insertBefore(tag.firstChild, tag)
+            }
+            tag.remove()
+          })
+        })
+
+        return temp.innerHTML
+      }
+
+      // Обработчик события вставки
+      const handlePaste = (e: ClipboardEvent) => {
+        e.preventDefault()
+
+        const clipboardData = e.clipboardData
+        if (!clipboardData) return
+
+        // Получаем HTML или plain text из буфера обмена
+        let pastedContent = clipboardData.getData('text/html')
+
+        if (!pastedContent) {
+          // Если HTML нет, используем plain text
+          pastedContent = clipboardData.getData('text/plain')
+          // Конвертируем переносы строк в <br>
+          pastedContent = pastedContent.replace(/\n/g, '<br>')
+        } else {
+          // Очищаем HTML от стилей
+          pastedContent = cleanHtml(pastedContent)
+        }
+
+        // Вставляем очищенный контент
+        document.execCommand('insertHTML', false, pastedContent)
+      }
+
       // Функция для конвертации plain text в HTML
       const textToHtml = (text: string): string => {
         // Если текст уже содержит HTML теги, возвращаем как есть
@@ -110,10 +178,12 @@ export const PostEditor = memo(() => {
 
       window.addEventListener('message', handleMessage as unknown as EventListener)
       document.addEventListener('message', handleMessage as unknown as EventListener)
+      document.addEventListener('paste', handlePaste as unknown as EventListener)
 
       return () => {
         window.removeEventListener('message', handleMessage as unknown as EventListener)
         document.removeEventListener('message', handleMessage as unknown as EventListener)
+        document.removeEventListener('paste', handlePaste as unknown as EventListener)
       }
     }, [value])
 
