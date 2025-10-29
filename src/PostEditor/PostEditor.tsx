@@ -255,11 +255,17 @@ export const PostEditor = memo(() => {
         }, 500)
       }
 
+      const handleBlur = () => {
+        hasSentCaretPosition.current = false
+      }
+
       const editor = document.querySelector('.rsw-editor')
       if (editor) {
         editor.addEventListener('focusin', handleFocus)
+        editor.addEventListener('focusout', handleBlur)
         return () => {
           editor.removeEventListener('focusin', handleFocus)
+          editor.removeEventListener('focusout', handleBlur)
         }
       }
     }, [getCaretPosition])
