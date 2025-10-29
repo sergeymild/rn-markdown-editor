@@ -1,7 +1,7 @@
 import Editor, {
   Toolbar
 } from 'react-simple-wysiwyg'
-import {memo, useCallback, useEffect, useState} from "react";
+import {memo, useCallback, useEffect, useRef, useState} from "react";
 import {markdownToHtml, htmlToMarkdown} from "./markdown.tsx";
 
 // Объявление типа для React Native WebView
@@ -16,6 +16,7 @@ declare global {
 
 export const PostEditor = memo(() => {
     const [value, setValue] = useState('')
+    const hasSentCaretPosition = useRef(false)
 
     // Отправляем сообщение о готовности при монтировании компонента
     useEffect(() => {
@@ -200,6 +201,25 @@ export const PostEditor = memo(() => {
       }
     }, [])
 
+    const getCaretPosition = useCallback(() => {
+      const selection = window.getSelection()
+      if (!selection || selection.rangeCount === 0) {
+        return null
+      }
+
+      const range = selection.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+
+      return {
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        bottom: rect.bottom,
+        right: rect.right
+      }
+    }, [])
+
     // Отслеживаем изменения размера контента
     useEffect(() => {
       setTimeout(sendHeight, 100)
@@ -216,6 +236,33 @@ export const PostEditor = memo(() => {
         observer.disconnect()
       }
     }, [sendHeight])
+
+    // Отправляем позицию каретки при первом фокусе
+    useEffect(() => {
+      const handleFocus = () => {
+        if (hasSentCaretPosition.current) return
+
+        // Небольшая задержка, чтобы каретка успела установиться
+        setTimeout(() => {
+          const position = getCaretPosition()
+          if (position && window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'CARET_POSITION',
+              position
+            }))
+            hasSentCaretPosition.current = true
+          }
+        }, 500)
+      }
+
+      const editor = document.querySelector('.rsw-editor')
+      if (editor) {
+        editor.addEventListener('focusin', handleFocus)
+        return () => {
+          editor.removeEventListener('focusin', handleFocus)
+        }
+      }
+    }, [getCaretPosition])
 
     const handleChange = (e: { target: { value: string } }) => {
       let newValue = e.target.value
@@ -241,7 +288,7 @@ export const PostEditor = memo(() => {
       if (window.ReactNativeWebView) {
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'VALUE_CHANGED',
-          value: newValue
+          value: document.querySelector('.rsw-editor')?.textContent || ''
         }))
       }
 
